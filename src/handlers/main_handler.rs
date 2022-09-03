@@ -36,10 +36,10 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     println!("client extra: {}", extra);
 
     let mut buf = BytesMut::default();
-    buf.put_u16_le(5);
-    buf.put_u8(0);
-    buf.put_u32_le(4);
-    buf.put_u32(5);
+    buf.put_u16_le(5); // packet id
+    buf.put_u8(0); // empty 'compression' bit
+    buf.put_u32_le(4); // length
+    buf.put_u32(5); // value
 
     println!("{:?}", buf);
 
