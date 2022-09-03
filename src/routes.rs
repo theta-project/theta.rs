@@ -1,4 +1,5 @@
 use actix_web::{error, get, post, web, Error, HttpRequest, HttpResponse, Responder};
+use bytes::BytesMut;
 use futures_util::StreamExt as _;
 
 use crate::handlers;
@@ -29,7 +30,7 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
     }
 
     let mut res = HttpResponse::Ok(); 
-
+    let mut res_body: BytesMut = BytesMut::default();
     match headers.get("osu-token") {
         Some(token) => {
             // try to login
@@ -37,10 +38,10 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         },
         None => {
             // no token
-            handlers::main_handler::login(&body, &mut res);
+            res_body = handlers::main_handler::login(&body, &mut res);
         }
     };
     
 
-    Ok(res.finish())
+    Ok(res.body(res_body))
 }

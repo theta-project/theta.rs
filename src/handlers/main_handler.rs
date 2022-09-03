@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+use std::{str::Utf8Error, io::Read};
 
 use actix_web::{web, HttpResponseBuilder};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
@@ -22,19 +22,18 @@ fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'
     ))
 }
 
-pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) {
+pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     let (username, password, extra) = match parse_login_data(body) {
         Ok(x) => x,
         Err(e) => {
             println!("{}", e);
-            return;
+            return BytesMut::default();
         }
     };
 
     println!("username: {}", username);
     println!("password: {}", password);
     println!("client extra: {}", extra);
-
 
     let mut buf = BytesMut::default();
     buf.put_u16_le(5);
@@ -44,7 +43,8 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) {
 
     println!("{:?}", buf);
 
-    res.insert_header(("cho-token", "test")).body("\x05\0\0\x04\0\0\0\0\0\0\x05");
+    res.insert_header(("cho-token", username));
+    buf
 }
 /*
 pub fn handle_packet(req: HttpRequest, res: HttpResponseBuilder) {
