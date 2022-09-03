@@ -1,7 +1,7 @@
-use std::{str::Utf8Error, io::Read};
+use std::{str::Utf8Error};
 
 use actix_web::{web, HttpResponseBuilder};
-use bytes::{Buf, BufMut, Bytes, BytesMut};
+use bytes::{BufMut, BytesMut};
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
     let parsed_body =
