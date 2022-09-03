@@ -1,7 +1,9 @@
 use std::{str::Utf8Error};
 
 use actix_web::{web, HttpResponseBuilder};
-use bytes::{BufMut, BytesMut};
+use bytes::{BytesMut};
+
+use crate::buf;
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
     let parsed_body =
@@ -35,16 +37,22 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     println!("password: {}", password);
     println!("client extra: {}", extra);
 
-    let mut buf = BytesMut::default();
-    buf.put_u16_le(5); // packet id
-    buf.put_u8(0); // empty 'compression' bit
-    buf.put_u32_le(4); // length
-    buf.put_u32(5); // value
+    let mut buf = buf::Buffer {
+        buffer: BytesMut::default(),
+        length: 0,
+        offset: 0,
+    };
+    
+    let login_packet = buf::BanchoLogin {
+        id: 400
+    };
 
-    println!("{:?}", buf);
+    login_packet.write_to_buffer(&mut buf);
+
+    println!("{:?}", buf.buffer);
 
     res.insert_header(("cho-token", username));
-    buf
+    buf.buffer
 }
 /*
 pub fn handle_packet(req: HttpRequest, res: HttpResponseBuilder) {
