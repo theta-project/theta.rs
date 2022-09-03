@@ -911,6 +911,7 @@ name = "theta"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "bytes",
  "futures-util",
 ]
 
