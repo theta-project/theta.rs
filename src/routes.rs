@@ -17,7 +17,6 @@ const MAX_SIZE: usize = 262_144;
 #[post("/")]
 pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Result<HttpResponse, Error>  {
     let headers = req.headers();
-    let raw_token = headers.get("osu-token");
     
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -38,7 +37,7 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         },
         None => {
             // no token
-            handlers::main_handler::login(&req, &res);
+            handlers::main_handler::login(&body, &mut res);
         }
     };
     
