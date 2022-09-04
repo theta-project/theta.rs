@@ -44,7 +44,7 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     };
     
     let login_packet = buf::BanchoLogin {
-        id: 400
+        id: 300000
     };
 
     login_packet.write_to_buffer(&mut buf);
