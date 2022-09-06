@@ -1,5 +1,3 @@
-use std::fmt::Write;
-
 use bytes::{Buf, BufMut, BytesMut};
 
 pub struct Buffer {
@@ -76,7 +74,7 @@ impl Buffer {
 
         self.write_u8(0xb);
         self.write_uleb(length);
-        self.buffer.write_str(&string);
+        self.buffer.put(string.as_bytes());
     }
 
     pub fn read_bool(&mut self) -> bool {

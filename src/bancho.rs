@@ -43,42 +43,22 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
         buffer: BytesMut::default()
     };
 
-    buf.write_i16(5);
+    buf.write_i16(packet::PacketIDs::BanchoLoginReply as i16);
     buf.write_bool(false);
     buf.write_u32(4);
     buf.write_u32(10);
 
     let announcement = "nya~";
-    buf.write_i16(24);
+    buf.write_i16(packet::PacketIDs::BanchoAnnounce as i16);
     buf.write_bool(false);
     buf.write_u32((announcement.len() as u32) + 2);
     buf.write_string(announcement.to_string());
 
-    buf.write_i16(64);
+    buf.write_i16(packet::PacketIDs::BanchoChannelJoinSuccess as i16);
     buf.write_bool(false);
     buf.write_u32(("#osu".len() as u32) + 2);
     buf.write_string("#osu".to_string());
 
-    println!("{:?}", buf.buffer);
-
-
-    let mut buf_test = buf::Buffer {
-        buffer: BytesMut::default()
-    };
-
-    buf_test.write_i16(5);
-    buf_test.write_bool(false);
-    buf_test.write_u32((announcement.len() as u32) + 2);
-    buf_test.write_string(announcement.to_string());
-
-    let packet_id = buf_test.read_i16();
-    println!("{}", packet_id);
-
-    let _compression = buf_test.read_bool();
-    let length = buf_test.read_u32();
-    let userid = buf_test.read_str();
-    println!("{}", length);
-    println!("{}", userid);
 
     res.insert_header(("cho-token", username));
     buf.buffer
@@ -102,6 +82,7 @@ pub fn handle_packet(body: &web::BytesMut)  {
         } else {
             println!("Unhandled packet: {} (length: {})", id, packet_length);
             in_buf.buffer.advance(packet_length as usize);
+            length += packet_length as usize;
         }
 
 
