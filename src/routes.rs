@@ -35,6 +35,7 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         Some(token) => {
             // try to login
             println!("token was found ({:?}) -- should try and find user", token);
+            bancho::handle_packet(&body);
         },
         None => {
             // no token

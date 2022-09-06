@@ -38,9 +38,7 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     println!("client extra: {}", extra);
 
     let mut buf = buf::Buffer {
-        buffer: BytesMut::default(),
-        length: 0,
-        offset: 0,
+        buffer: BytesMut::default()
     };
 
     buf.write_i16(5);
@@ -63,9 +61,7 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
 
 
     let mut buf_test = buf::Buffer {
-        buffer: BytesMut::default(),
-        length: 0,
-        offset: 0,
+        buffer: BytesMut::default()
     };
 
     buf_test.write_i16(5);
@@ -85,7 +81,28 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     res.insert_header(("cho-token", username));
     buf.buffer
 }
-/*
-pub fn handle_packet(req: HttpRequest, res: HttpResponseBuilder) {
 
-}*/
+pub fn handle_packet(body: &web::BytesMut)  {
+    let mut in_buf = buf::Buffer {
+        buffer: body.clone()
+    };
+
+    let mut length = 0;
+    while length <= in_buf.buffer.len() {
+        let id = in_buf.read_i16();
+        let _compression = in_buf.read_bool();
+        let packet_length = in_buf.read_u32();
+
+        match id {
+            1 => {
+                println!("message sent")
+            }
+            4 => {}
+            _ => println!("Unhandled packet: {} (length: {})", id, packet_length)
+        }
+
+
+        length += packet_length as usize + 1;
+    }
+
+}
