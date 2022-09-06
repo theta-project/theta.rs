@@ -2,7 +2,7 @@ use crate::buf;
 // Packet IDs taken from
 // [here](https://github.com/Itsyuka/osu-packet/blob/master/src/packets.js)
 pub enum PacketIDs {
-    ClientSendUserStatus = 0,
+    ClientSendUserStatus,
     ClientSendIrcMessage,
     ClientExit,
     ClientRequestStatusUpdate,
