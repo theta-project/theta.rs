@@ -3,7 +3,7 @@ mod routes;
 mod bancho;
 mod buf;
 mod packet;
-
+mod session;
 #[actix_web::main]
 async fn main() -> std::io::Result<()>  {
     HttpServer::new(|| {

@@ -4,9 +4,11 @@ use std::str::Utf8Error;
 use actix_web::{web, HttpResponseBuilder};
 use bytes::Buf;
 use bytes::BytesMut;
+use uuid::Uuid;
 
 use crate::buf;
 use crate::packet;
+use crate::session;
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
     let parsed_body =
@@ -36,26 +38,38 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
         }
     };
 
-    println!("username: {}", username);
+    let mut session = session::Session {
+        id: 10,
+        username,
+        token: Uuid::new_v4().to_string(),
+        buffer: buf::Buffer {
+            buffer: BytesMut::default()
+        }
+    };
+
+
+
+    println!("username: {}", session.username);
     println!("password: {}", password);
     println!("client extra: {}", extra);
 
-    let mut buf = buf::Buffer {
-        buffer: BytesMut::default()
-    };
+    packet::packet_login_success(&mut session.buffer, 10);
+    packet::packet_announce(&mut session.buffer, format!("Welcome to theta, {}!", session.username));
+    packet::packet_channel_join(&mut session.buffer, "#osu".to_string());
 
-    packet::packet_login_success(&mut buf, 10);
-    packet::packet_announce(&mut buf, format!("Welcome to theta, {}!", username));
-    packet::packet_channel_join(&mut buf, "#osu".to_string());
+    session::ONLINE_SESSIONS.push(&mut session);
 
-    res.insert_header(("cho-token", username));
-    buf.buffer
+    res.insert_header(("cho-token", session.token));
+    session.buffer.buffer
 }
 
-pub fn handle_packet(body: &web::BytesMut)  {
+pub fn handle_packet(body: &web::BytesMut, sess: &mut session::Session) -> BytesMut {
     let mut in_buf = buf::Buffer {
         buffer: body.clone()
     };
+    if !sess.buffer.buffer.is_empty() {
+        sess.buffer.buffer.clear();
+    }
 
     let mut length = 0;
     while length <= in_buf.buffer.len() {
@@ -78,4 +92,5 @@ pub fn handle_packet(body: &web::BytesMut)  {
         length += 1;
     }
 
+    sess.buffer.buffer.clone()
 }

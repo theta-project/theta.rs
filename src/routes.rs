@@ -3,7 +3,7 @@ use bytes::BytesMut;
 use futures_util::StreamExt as _;
 
 use crate::bancho;
-
+use crate::session;
 
 #[get("/")]
 pub async fn bancho_homepage() -> impl Responder {
@@ -35,7 +35,18 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         Some(token) => {
             // try to login
             println!("token: {:?}", token);
-            bancho::handle_packet(&body);
+
+            let token_string = token.to_str().expect("token");
+            match session::find_from_token(token_string.to_string()) {
+                Ok(sess) => {
+                    res_body = bancho::handle_packet(&body, sess);
+                }
+                Err(err) => {
+                    println!("{}", err);
+                }
+            }
+
+            
         },
         None => {
             // no token

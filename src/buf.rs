@@ -1,5 +1,5 @@
 use bytes::{Buf, BufMut, BytesMut};
-
+#[derive(Debug)]
 pub struct Buffer {
     pub buffer: BytesMut,
 }
