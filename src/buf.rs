@@ -79,7 +79,11 @@ impl Buffer {
 
             uleb_len += 1;
         }
+        
+        uleb.retain(|&x| x != 0);
 
+        self.buffer.put(uleb.as_slice());
+        //self.write_u8(uleb_len as u8);
     }
     pub fn write_string(&mut self, string: String) {
         let length = string.len();
