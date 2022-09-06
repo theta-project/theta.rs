@@ -1,113 +1,38 @@
 use crate::buf;
-// Packet IDs taken from
-// [here](https://github.com/Itsyuka/osu-packet/blob/master/src/packets.js)
-pub enum PacketIDs {
-    ClientSendUserStatus,
-    ClientSendIrcMessage,
-    ClientExit,
-    ClientRequestStatusUpdate,
-    ClientPong,
-    BanchoLoginReply,
-    BanchoCommandError,
-    BanchoSendMessage,
-    BanchoPing,
-    BanchoHandleIrcChangeUsername,
-    BanchoHandleIrcQuit,
-    BanchoHandleOsuUpdate,
-    BanchoHandleUserQuit,
-    BanchoSpectatorJoined,
-    BanchoSpectatorLeft,
-    BanchoSpectateFrames,
-    ClientStartSpectating,
-    ClientStopSpectating,
-    ClientSpectateFrames,
-    BanchoVersionUpdate,
-    ClientErrorReport,
-    ClientCantSpectate,
-    BanchoSpectatorCantSpectate,
-    BanchoGetAttention,
-    BanchoAnnounce,
-    ClientSendIrcMessagePrivate,
-    BanchoMatchUpdate,
-    BanchoMatchNew,
-    BanchoMatchDisband,
-    ClientLobbyPart,
-    ClientLobbyJoin,
-    ClientMatchCreate,
-    ClientMatchJoin,
-    ClientMatchPart,
-    BanchoMatchJoinSuccess,
-    BanchoMatchJoinFail,
-    ClientMatchChangeSlot,
-    ClientMatchReady,
-    ClientMatchLock,
-    ClientMatchChangeSettings,
-    BanchoFellowSpectatorJoined,
-    BanchoFellowSpectatorLeft,
-    ClientMatchStart,
-    BanchoMatchStart,
-    ClientMatchScoreUpdate,
-    BanchoMatchScoreUpdate,
-    ClientMatchComplete,
-    BanchoMatchTransferHost,
-    ClientMatchChangeMods,
-    ClientMatchLoadComplete,
-    BanchoMatchAllPlayersLoaded,
-    ClientMatchNoBeatmap,
-    ClientMatchNotReady,
-    ClientMatchFailed,
-    BanchoMatchPlayerFailed,
-    BanchoMatchComplete,
-    ClientMatchHasBeatmap,
-    ClientMatchSkipRequest,
-    BanchoMatchSkip,
-    BanchoUnauthorised,
-    ClientChannelJoin,
-    BanchoChannelJoinSuccess,
-    BanchoChannelAvailable,
-    BanchoChannelRevoked,
-    BanchoChannelAvailableAutojoin,
-    ClientBeatmapInfoRequest,
-    BanchoBeatmapInfoReply,
-    ClientMatchTransferHost,
-    BanchoLoginPermissions,
-    BanchoFriendsList,
-    ClientFriendAdd,
-    ClientFriendRemove,
-    BanchoProtocolNegotiation,
-    BanchoTitleUpdate,
-    ClientMatchChangeTeam,
-    ClientChannelLeave,
-    ClientReceiveUpdates,
-    BanchoMonitor,
-    BanchoMatchPlayerSkipped,
-    ClientSetIrcAwayMessage,
-    BanchoUserPresence,
-    ClientUserStatsRequest,
-    BanchoRestart,
-    ClientInvite,
-    BanchoInvite,
-    BanchoChannelListingComplete,
-    ClientMatchChangePassword,
-    BanchoMatchChangePassword,
-    BanchoBanInfo,
-    ClientSpecialMatchInfoRequest,
-    BanchoUserSilenced,
-    BanchoUserPresenceSingle,
-    BanchoUserPresenceBundle,
-    ClientUserPresenceRequest,
-    ClientUserPresenceRequestAll,
-    ClientUserToggleBlockNonFriendPm,
-    BanchoUserPmBlocked,
-    BanchoTargetIsSilenced,
-    BanchoVersionUpdateForced,
-    BanchoSwitchServer,
-    BanchoAccountRestricted,
-    BanchoRtx,
-    ClientMatchAbort,
-    BanchoSwitchTourneyServer,
-    ClientSpecialJoinMatchChannel,
-    ClientSpecialLeaveMatchChannel,
+
+fn put_header(b: &mut buf::Buffer, id: i16) {
+    b.write_i16(id);
+    b.write_bool(false);
+    b.write_u32(0);
+}
+fn fix_header(b: &mut buf::Buffer, start: usize) {
+    let length = b.buffer.len() - start - 7;
+    (b.buffer[start + 3]) = length as u8;
+}
+
+pub fn packet_login_success(b: &mut buf::Buffer, id: u32) {
+    let start = b.buffer.len();
+
+    put_header(b, 5);
+    b.write_u32(id);
+    fix_header(b, start);
+}
+
+pub fn packet_announce(b: &mut buf::Buffer, announcement: String) {
+    let start = b.buffer.len();
+
+    put_header(b, 24);
+    b.write_string(announcement);
+    fix_header(b, start);
+}
+
+
+pub fn packet_channel_join(b: &mut buf::Buffer, chan: String) {
+    let start = b.buffer.len();
+
+    put_header(b, 64);
+    b.write_string(chan);
+    fix_header(b, start);
 }
 
 #[derive(Debug)]
@@ -121,7 +46,7 @@ pub struct ClientStatus {
 }
 
 pub fn read_status(b: &mut buf::Buffer) -> ClientStatus {
-    ClientStatus {  
+    ClientStatus {
         status: b.read_u8(),
         status_text: b.read_str(),
         beatmap_checksum: b.read_str(),

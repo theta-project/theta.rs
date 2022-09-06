@@ -1,3 +1,4 @@
+use std::fmt::format;
 use std::str::Utf8Error;
 
 use actix_web::{web, HttpResponseBuilder};
@@ -43,22 +44,9 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
         buffer: BytesMut::default()
     };
 
-    buf.write_i16(packet::PacketIDs::BanchoLoginReply as i16);
-    buf.write_bool(false);
-    buf.write_u32(4);
-    buf.write_u32(10);
-
-    let announcement = "nya~";
-    buf.write_i16(packet::PacketIDs::BanchoAnnounce as i16);
-    buf.write_bool(false);
-    buf.write_u32((announcement.len() as u32) + 2);
-    buf.write_string(announcement.to_string());
-
-    buf.write_i16(packet::PacketIDs::BanchoChannelJoinSuccess as i16);
-    buf.write_bool(false);
-    buf.write_u32(("#osu".len() as u32) + 2);
-    buf.write_string("#osu".to_string());
-
+    packet::packet_login_success(&mut buf, 10);
+    packet::packet_announce(&mut buf, format!("Welcome to theta, {}!", username));
+    packet::packet_channel_join(&mut buf, "#osu".to_string());
 
     res.insert_header(("cho-token", username));
     buf.buffer
