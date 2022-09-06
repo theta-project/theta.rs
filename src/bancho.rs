@@ -1,9 +1,11 @@
 use std::str::Utf8Error;
 
 use actix_web::{web, HttpResponseBuilder};
+use bytes::Buf;
 use bytes::BytesMut;
 
 use crate::buf;
+use crate::packet;
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
     let parsed_body =
@@ -93,16 +95,18 @@ pub fn handle_packet(body: &web::BytesMut)  {
         let _compression = in_buf.read_bool();
         let packet_length = in_buf.read_u32();
 
-        match id {
-            1 => {
-                println!("message sent")
-            }
-            4 => {}
-            _ => println!("Unhandled packet: {} (length: {})", id, packet_length)
+        
+        if id == 0 {
+            let status = packet::read_status(&mut in_buf);
+            println!("{:?}", status);
+        } else {
+            println!("Unhandled packet: {} (length: {})", id, packet_length);
+            in_buf.buffer.advance(packet_length as usize);
         }
 
 
-        length += packet_length as usize + 1;
+        
+        length += 1;
     }
 
 }

@@ -1,23 +1,18 @@
-pub struct Packet {
-    id: u16,
-    data: vec<u8>
-}
-
-
+use crate::buf;
 // Packet IDs taken from
 // [here](https://github.com/Itsyuka/osu-packet/blob/master/src/packets.js)
 enum PacketIDs {
-    CLIENT_SEND_USER_STATUS,
-    CLIENT_SEND_IRC_MESSAGE,
-    CLIENT_EXIT,
-    CLIENT_REQUEST_STATUS_UPDATE,
-    CLIENT_PONG,
-    BANCHO_LOGIN_REPLY,
-    BANCHO_COMMAND_ERROR,
-    BANCHO_SEND_MESSAGE,
-    BANCHO_PING,
-    BANCHO_HANDLE_IRC_CHANGE_USERNAME,
-    BANCHO_HANDLE_IRC_QUIT,
+    ClientSendUserStatus,
+    ClientSendIrcMessage,
+    ClientExit,
+    ClientRequestStatusUpdate,
+    ClientPong,
+    BanchoLoginReply,
+    BanchoCommandError,
+    BanchoSendMessage,
+    BanchoPing,
+    BanchoHandleIrcChangeUsername,
+    BanchoHandleIrcQuit,
     BANCHO_HANDLE_OSU_UPDATE,
     BANCHO_HANDLE_USER_QUIT,
     BANCHO_SPECTATOR_JOINED,
@@ -70,7 +65,7 @@ enum PacketIDs {
     CLIENT_CHANNEL_JOIN,
     BANCHO_CHANNEL_JOIN_SUCCESS,
     BANCHO_CHANNEL_AVAILABLE,
-    BANCHO_CHANNEL_REVOKED ,
+    BANCHO_CHANNEL_REVOKED,
     BANCHO_CHANNEL_AVAILABLE_AUTOJOIN,
     CLIENT_BEATMAP_INFO_REQUEST,
     BANCHO_BEATMAP_INFO_REPLY,
@@ -111,6 +106,27 @@ enum PacketIDs {
     BANCHO_RTX,
     CLIENT_MATCH_ABORT,
     BANCHO_SWITCH_TOURNEY_SERVER,
-    CLIENT_SPECIAL_JOIN_MATCH_CHANNEL, 
+    CLIENT_SPECIAL_JOIN_MATCH_CHANNEL,
     CLIENT_SPECIAL_LEAVE_MATCH_CHANNEL,
+}
+
+#[derive(Debug)]
+pub struct ClientStatus {
+    status: u8,
+    status_text: String,
+    beatmap_checksum: String,
+    current_mods: u32,
+    play_mode: u8,
+    beatmap_id: i32,
+}
+
+pub fn read_status(b: &mut buf::Buffer) -> ClientStatus {
+    ClientStatus {  
+        status: b.read_u8(),
+        status_text: b.read_str(),
+        beatmap_checksum: b.read_str(),
+        current_mods: b.read_u32(),
+        play_mode: b.read_u8(),
+        beatmap_id: b.read_i32(),
     }
+}

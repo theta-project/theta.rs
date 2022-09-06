@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 use bytes::{Buf, BufMut, BytesMut};
 
 pub struct Buffer {
@@ -74,7 +76,7 @@ impl Buffer {
 
         self.write_u8(0xb);
         self.write_uleb(length);
-        self.buffer.put(string.as_bytes());
+        self.buffer.write_str(&string);
     }
 
     pub fn read_bool(&mut self) -> bool {
@@ -155,6 +157,7 @@ impl Buffer {
 
         if length > 0 {
             let mut i = 0;
+            
             while i < length+1 {
                 let current_char = self.buffer.get(i);
                 let chr = match current_char {
@@ -166,7 +169,7 @@ impl Buffer {
                 i += 1;
             }
 
-            
+            self.buffer.advance(length);   
         }
          
         string
