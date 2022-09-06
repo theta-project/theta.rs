@@ -1,6 +1,6 @@
 use actix_web::{HttpServer, App};
 mod routes;
-mod handlers;
+mod bancho;
 mod buf;
 
 #[actix_web::main]

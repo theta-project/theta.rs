@@ -2,7 +2,7 @@ use actix_web::{error, get, post, web, Error, HttpRequest, HttpResponse, Respond
 use bytes::BytesMut;
 use futures_util::StreamExt as _;
 
-use crate::handlers;
+use crate::bancho;
 
 
 #[get("/")]
@@ -38,7 +38,7 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         },
         None => {
             // no token
-            res_body = handlers::main_handler::login(&body, &mut res);
+            res_body = bancho::login(&body, &mut res);
         }
     };
     

@@ -42,12 +42,18 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
         length: 0,
         offset: 0,
     };
-    
-    let login_packet = buf::BanchoLogin {
-        id: 300000
-    };
 
-    login_packet.write_to_buffer(&mut buf);
+    buf.write_i16(5);
+    buf.write_bool(false);
+    buf.write_u32(4);
+    buf.write_u32(10);
+
+    let announcement = "testing hello there";
+    buf.write_i16(24);
+    buf.write_bool(false);
+    buf.write_u32(announcement.len() as u32);
+    buf.write_string(announcement.to_string());
+    
 
     println!("{:?}", buf.buffer);
 
