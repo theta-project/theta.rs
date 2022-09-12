@@ -13,12 +13,15 @@ pub async fn bancho_homepage() -> impl Responder {
     ))
 }
 
-const MAX_SIZE: usize = 262_144; 
+const MAX_SIZE: usize = 262_144;
 
 #[post("/")]
-pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Result<HttpResponse, Error>  {
+pub async fn bancho_handler(
+    req: HttpRequest,
+    mut payload: web::Payload,
+) -> Result<HttpResponse, Error> {
     let headers = req.headers();
-    
+
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
         let chunk = chunk?;
@@ -29,7 +32,7 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
         body.extend_from_slice(&chunk);
     }
 
-    let mut res = HttpResponse::Ok(); 
+    let mut res = HttpResponse::Ok();
     let mut res_body: BytesMut = BytesMut::default();
     match headers.get("osu-token") {
         Some(token) => {
@@ -37,23 +40,13 @@ pub async fn bancho_handler(req: HttpRequest, mut payload: web::Payload) -> Resu
             println!("token: {:?}", token);
 
             let token_string = token.to_str().expect("token");
-            match session::find_from_token(token_string.to_string()) {
-                Ok(sess) => {
-                    res_body = bancho::handle_packet(&body, sess);
-                }
-                Err(err) => {
-                    println!("{}", err);
-                }
-            }
-
-            
-        },
+            bancho::handle_packet(&body);
+        }
         None => {
             // no token
             res_body = bancho::login(&body, &mut res);
         }
     };
-    
 
     Ok(res.body(res_body))
 }

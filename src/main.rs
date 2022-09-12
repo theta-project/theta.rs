@@ -1,8 +1,9 @@
+#[macro_use]
+extern crate lazy_static;
 use actix_web::{HttpServer, App};
 mod routes;
 mod bancho;
 mod buf;
-mod packet;
 mod session;
 #[actix_web::main]
 async fn main() -> std::io::Result<()>  {

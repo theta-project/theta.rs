@@ -7,7 +7,7 @@ use bytes::BytesMut;
 use uuid::Uuid;
 
 use crate::buf;
-use crate::packet;
+use crate::buf::Buffer;
 use crate::session;
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
@@ -53,21 +53,20 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
     println!("password: {}", password);
     println!("client extra: {}", extra);
 
-    packet::packet_login_success(&mut session.buffer, 10);
-    packet::packet_announce(&mut session.buffer, format!("Welcome to theta, {}!", session.username));
-    packet::packet_channel_join(&mut session.buffer, "#osu".to_string());
-
-    session::ONLINE_SESSIONS.push(&mut session);
+    session.buffer.packet_login_success(session.id);
+    session.buffer.packet_announce(format!("Welcome to theta, {}!", session.username));
+    session.buffer.packet_channel_join("#osu".to_string());
 
     res.insert_header(("cho-token", session.token));
     session.buffer.buffer
 }
-
-pub fn handle_packet(body: &web::BytesMut, sess: &mut session::Session) -> BytesMut {
+//sess: &mut session::Session
+pub fn handle_packet(body: &web::BytesMut) -> BytesMut {
     let mut in_buf = buf::Buffer {
         buffer: body.clone()
     };
-    if !sess.buffer.buffer.is_empty() {
+    in_buf.buffer
+/*     if !sess.buffer.buffer.is_empty() {
         sess.buffer.buffer.clear();
     }
 
@@ -92,5 +91,5 @@ pub fn handle_packet(body: &web::BytesMut, sess: &mut session::Session) -> Bytes
         length += 1;
     }
 
-    sess.buffer.buffer.clone()
+   .. sess.buffer.buffer.clone()*/
 }

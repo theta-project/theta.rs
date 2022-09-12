@@ -5,6 +5,17 @@ pub struct Buffer {
 }
 
 impl Buffer {
+    fn put_header(&mut self, id: i16) {
+        self.write_i16(id);
+        self.write_bool(false);
+        self.write_u32(0);
+    }
+
+    fn fix_header(&mut self, start: usize) {
+        let length = self.buffer.len() - start - 7;
+        (self.buffer[start + 3]) = length as u8;
+    }
+
     pub fn write_bool(&mut self, val: bool) {
         self.buffer.put_u8(val as u8);
     }
@@ -155,22 +166,46 @@ impl Buffer {
 
         if length > 0 {
             let mut i = 0;
-            
-            while i < length+1 {
+
+            while i < length + 1 {
                 let current_char = self.buffer.get(i);
                 let chr = match current_char {
                     Some(x) => *x as char,
-                    None => '\0'
+                    None => '\0',
                 };
 
                 string = format!("{}{}", string, chr); //;
                 i += 1;
             }
 
-            self.buffer.advance(length);   
+            self.buffer.advance(length);
         }
-         
+
         string
+    }
+
+    pub fn packet_login_success(&mut self, id: u32) {
+        let start = self.buffer.len();
+
+        self.put_header(5);
+        self.write_u32(id);
+        self.fix_header(start);
+    }
+
+    pub fn packet_announce(&mut self, announcement: String) {
+        let start = self.buffer.len();
+
+        self.put_header(24);
+        self.write_string(announcement);
+        self.fix_header(start);
+    }
+
+    pub fn packet_channel_join(&mut self, chan: String) {
+        let start = self.buffer.len();
+
+        self.put_header(64);
+        self.write_string(chan);
+        self.fix_header(start);
     }
 }
 
