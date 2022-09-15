@@ -913,6 +913,7 @@ dependencies = [
  "bytes",
  "futures-util",
  "lazy_static",
+ "once_cell",
  "uuid",
 ]
 

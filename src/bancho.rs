@@ -7,7 +7,7 @@ use bytes::BytesMut;
 use uuid::Uuid;
 
 use crate::buf;
-use crate::buf::Buffer;
+use crate::globals;
 use crate::session;
 
 fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'static str> {
@@ -29,7 +29,11 @@ fn parse_login_data(body: &web::BytesMut) -> Result<(String, String, String), &'
     ))
 }
 
-pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
+pub fn login(
+    body: &web::BytesMut,
+    res: &mut HttpResponseBuilder,
+    globals: web::Data<globals::Globals>,
+) -> BytesMut {
     let (username, password, extra) = match parse_login_data(body) {
         Ok(x) => x,
         Err(e) => {
@@ -37,59 +41,65 @@ pub fn login(body: &web::BytesMut, res: &mut HttpResponseBuilder) -> BytesMut {
             return BytesMut::default();
         }
     };
+    let mut global_sessions = globals.session_list.lock().unwrap();
 
-    let mut session = session::Session {
+    let sess = session::Session {
         id: 10,
         username,
         token: Uuid::new_v4().to_string(),
         buffer: buf::Buffer {
-            buffer: BytesMut::default()
-        }
+            buffer: BytesMut::default(),
+        },
     };
+    global_sessions.push(sess);
+    // sess no longer exists here
+    let sess_len = global_sessions.len();
+    let sess: &mut session::Session = &mut global_sessions[sess_len- 1];
 
-
-
-    println!("username: {}", session.username);
+    println!("username: {}", sess.username);
     println!("password: {}", password);
     println!("client extra: {}", extra);
 
-    session.buffer.packet_login_success(session.id);
-    session.buffer.packet_announce(format!("Welcome to theta, {}!", session.username));
-    session.buffer.packet_channel_join("#osu".to_string());
+    sess.buffer.packet_login_success(sess.id);
+    sess.buffer
+        .packet_announce(format!("Welcome to theta, {}!", sess.username));
+    sess.buffer.packet_channel_join("#osu".to_string());
 
-    res.insert_header(("cho-token", session.token));
-    session.buffer.buffer
+    res.insert_header(("cho-token", sess.token.clone()));
+    sess.buffer.buffer.clone()
+    //
 }
 //sess: &mut session::Session
-pub fn handle_packet(body: &web::BytesMut) -> BytesMut {
-    let mut in_buf = buf::Buffer {
-        buffer: body.clone()
+pub fn handle_packet(body: &web::BytesMut, globals: web::Data<globals::Globals>) -> BytesMut {
+    let in_buf = buf::Buffer {
+        buffer: body.clone(),
     };
     in_buf.buffer
-/*     if !sess.buffer.buffer.is_empty() {
-        sess.buffer.buffer.clear();
-    }
 
-    let mut length = 0;
-    while length <= in_buf.buffer.len() {
-        let id = in_buf.read_i16();
-        let _compression = in_buf.read_bool();
-        let packet_length = in_buf.read_u32();
+    /*     if !sess.buffer.buffer.is_empty() {
+         sess.buffer.buffer.clear();
+     }
 
-        
-        if id == 0 {
-            let status = packet::read_status(&mut in_buf);
-            println!("{:?}", status);
-        } else {
-            println!("Unhandled packet: {} (length: {})", id, packet_length);
-            in_buf.buffer.advance(packet_length as usize);
-            length += packet_length as usize;
-        }
+     let mut length = 0;
+     while length <= in_buf.buffer.len() {
+         let id = in_buf.read_i16();
+         let _compression = in_buf.read_bool();
+         let packet_length = in_buf.read_u32();
 
 
-        
-        length += 1;
-    }
+         if id == 0 {
+             let status = packet::read_status(&mut in_buf);
+             println!("{:?}", status);
+         } else {
+             println!("Unhandled packet: {} (length: {})", id, packet_length);
+             in_buf.buffer.advance(packet_length as usize);
+             length += packet_length as usize;
+         }
 
-   .. sess.buffer.buffer.clone()*/
+
+
+         length += 1;
+     }
+
+    .. sess.buffer.buffer.clone()*/
 }

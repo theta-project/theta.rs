@@ -4,6 +4,7 @@ use futures_util::StreamExt as _;
 
 use crate::bancho;
 use crate::session;
+use crate::globals;
 
 #[get("/")]
 pub async fn bancho_homepage() -> impl Responder {
@@ -19,6 +20,7 @@ const MAX_SIZE: usize = 262_144;
 pub async fn bancho_handler(
     req: HttpRequest,
     mut payload: web::Payload,
+    globals: web::Data<globals::Globals>
 ) -> Result<HttpResponse, Error> {
     let headers = req.headers();
 
@@ -31,7 +33,6 @@ pub async fn bancho_handler(
         }
         body.extend_from_slice(&chunk);
     }
-
     let mut res = HttpResponse::Ok();
     let mut res_body: BytesMut = BytesMut::default();
     match headers.get("osu-token") {
@@ -40,11 +41,11 @@ pub async fn bancho_handler(
             println!("token: {:?}", token);
 
             let token_string = token.to_str().expect("token");
-            bancho::handle_packet(&body);
+            bancho::handle_packet(&body, globals);
         }
         None => {
             // no token
-            res_body = bancho::login(&body, &mut res);
+            res_body = bancho::login(&body, &mut res, globals);
         }
     };
 
