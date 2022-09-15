@@ -76,7 +76,6 @@ pub fn handle_packet(body: &web::BytesMut, globals: web::Data<globals::Globals>,
         buffer: body.clone(),
     };
     for sess in global_sessions.as_slice() {
-        println!("{}", sess.token);
         if sess.token == token {
             if !sess.buffer.buffer.is_empty() {
                 sess.buffer.buffer.clone().clear();
