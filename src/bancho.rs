@@ -54,7 +54,7 @@ pub fn login(
     global_sessions.push(sess);
     // sess no longer exists here
     let sess_len = global_sessions.len();
-    let sess: &mut session::Session = &mut global_sessions[sess_len- 1];
+    let sess: &mut session::Session = &mut global_sessions[sess_len - 1];
 
     println!("username: {}", sess.username);
     println!("password: {}", password);
@@ -70,36 +70,40 @@ pub fn login(
     //
 }
 //sess: &mut session::Session
-pub fn handle_packet(body: &web::BytesMut, globals: web::Data<globals::Globals>) -> BytesMut {
-    let in_buf = buf::Buffer {
+pub fn handle_packet(body: &web::BytesMut, globals: web::Data<globals::Globals>, token: String) -> BytesMut {
+    let global_sessions = globals.session_list.lock().unwrap();
+    let mut in_buf = buf::Buffer {
         buffer: body.clone(),
     };
-    in_buf.buffer
+    for sess in global_sessions.as_slice() {
+        println!("{}", sess.token);
+        if sess.token == token {
+            if !sess.buffer.buffer.is_empty() {
+                sess.buffer.buffer.clone().clear();
+            }
 
-    /*     if !sess.buffer.buffer.is_empty() {
-         sess.buffer.buffer.clear();
-     }
+            let mut length = 0;
+            while length <= in_buf.buffer.len() {
+                let id = in_buf.read_i16();
+                let _compression = in_buf.read_bool();
+                let packet_length = in_buf.read_u32();
+    
+                println!("Unhandled packet: {} (length: {})", id, packet_length);
+                in_buf.buffer.advance(packet_length as usize);
+                length += packet_length as usize;
+    
+                length += 1;
+            }
+    
+            return sess.buffer.buffer.clone();
+        }
+        
+    }
+    let mut restart_buffer = buf::Buffer {
+        buffer: BytesMut::default()
+    };
+    restart_buffer.packet_announce("theta instance has been restarted, reconnecting...".to_string());
+    restart_buffer.packet_bancho_restart();
 
-     let mut length = 0;
-     while length <= in_buf.buffer.len() {
-         let id = in_buf.read_i16();
-         let _compression = in_buf.read_bool();
-         let packet_length = in_buf.read_u32();
-
-
-         if id == 0 {
-             let status = packet::read_status(&mut in_buf);
-             println!("{:?}", status);
-         } else {
-             println!("Unhandled packet: {} (length: {})", id, packet_length);
-             in_buf.buffer.advance(packet_length as usize);
-             length += packet_length as usize;
-         }
-
-
-
-         length += 1;
-     }
-
-    .. sess.buffer.buffer.clone()*/
+    restart_buffer.buffer
 }

@@ -11,4 +11,4 @@ pub struct Session {
     pub buffer: buf::Buffer,
 }
 
-//pub static SESSION_LIST: Lazy<>> = Lazy::new(|| Mutex::new(vec![]));
+//pub static SESSION_LIST: Lazy<>> = Lazy::new(|| );

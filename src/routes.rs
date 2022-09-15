@@ -37,11 +37,8 @@ pub async fn bancho_handler(
     let mut res_body: BytesMut = BytesMut::default();
     match headers.get("osu-token") {
         Some(token) => {
-            // try to login
-            println!("token: {:?}", token);
-
             let token_string = token.to_str().expect("token");
-            bancho::handle_packet(&body, globals);
+            res_body = bancho::handle_packet(&body, globals, token_string.to_string());
         }
         None => {
             // no token

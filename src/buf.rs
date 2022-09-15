@@ -207,6 +207,10 @@ impl Buffer {
         self.write_string(chan);
         self.fix_header(start);
     }
+
+    pub fn packet_bancho_restart(&mut self) {
+        self.put_header(86);
+    }
 }
 
 /*
